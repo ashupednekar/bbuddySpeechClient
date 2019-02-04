@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Bankbuddy Speech</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<style>
+    body, h1,h2,h3,h4,h5,h6 {font-family: "Montserrat", sans-serif}
+    .w3-row-padding img {margin-bottom: 12px}
+    .bgimg {
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: cover;
+        background-image: url('https://i.gifer.com/1Q7Z.gif');
+        min-height: 100%;
+    }
+</style>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Live input record and playback</title>
+<style type='text/css'>
+    ul { list-style: none; }
+    #recordingslist audio { display: block; margin-bottom: 10px; }
+</style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+
+<!-- Sidebar with image -->
+<nav class="w3-sidebar w3-hide-medium w3-hide-small" style="width:40%">
+    <div class="bgimg"></div>
+</nav>
+
+<!-- Menu icon to open sidebar -->
+<span class="w3-button w3-top w3-white w3-xxlarge w3-text-grey w3-hover-text-black" style="width:auto;right:0;"><img
+        src="3rNSQ7Lu_400x400.jpg" style="height: 100px; width: 100px"></span>
+
+<!-- Page Content -->
+<div  style="margin-left:40%">
+
+    <!-- Header -->
+    <header class="w3-container w3-center" style="padding:128px 16px" id="home">
+    <h1 class="w3-jumbo"><b>Bankbuddy Speech</b></h1>
+    <p>Based on Baidu's Deepspeech Architecture</p>
+    <!--<button class="w3-button w3-light-grey w3-padding-large w3-margin-top" onclick="startRecording(this);"><i></i>Record</button>-->
+    <button class="btn-floating btn-large waves-effect waves-light red" onclick="startRecording(this);"><i class="material-icons">mic</i></button>
+    <button class="btn-floating btn-large waves-effect waves-light red" onclick="stopRecording(this);" disabled><i class="material-icons">stop</i></button>
+
+    </header>
+
+    <center>
+        <div class="container">
+            <ul id="recordingslist"></ul>
+        </div>
+    </center>
+
+    <br><br>
+    <div style="margin-left:3%">
+        <h3>Log</h3>
+        <pre id="log"></pre>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script>
+        function __log(e, data) {
+            log.innerHTML += "\n" + e + " " + (data || '');
+        }
+
+        var audio_context;
+        var recorder;
+
+        function startUserMedia(stream) {
+            var input = audio_context.createMediaStreamSource(stream);
+            __log('Media stream created.');
+
+            // Uncomment if you want the audio to feedback directly
+            //input.connect(audio_context.destination);
+            //__log('Input connected to audio context destination.');
+
+            recorder = new Recorder(input);
+            __log('Recorder initialised.');
+        }
+
+        function startRecording(button) {
+            recorder && recorder.record();
+            button.disabled = true;
+            button.nextElementSibling.disabled = false;
+            __log('Recording...');
+        }
+
+        function stopRecording(button) {
+            recorder && recorder.stop();
+            button.disabled = true;
+            button.previousElementSibling.disabled = false;
+            __log('Stopped recording.');
+
+            // create WAV download link using audio data blob
+            createDownloadLink();
+
+            recorder.clear();
+        }
+
+        function createDownloadLink() {
+            recorder && recorder.exportWAV(function(blob) {
+                var url = URL.createObjectURL(blob);
+                var li = document.createElement('li');
+                var au = document.createElement('audio');
+                var hf = document.createElement('a');
+
+                au.controls = true;
+                au.src = url;
+                console.log(url)
+                hf.href = url;
+                hf.download = new Date().toISOString() + '.wav';
+                hf.innerHTML = hf.download;
+                li.appendChild(au);
+                li.appendChild(hf);
+
+                var filename = new Date().toISOString(); //filename to send to server without extension
+//upload link
+//                 var xhr=new XMLHttpRequest();
+//                 xhr.onload=function(e) {
+//                     if(this.readyState === 4) {
+//                         console.log("Server returned: ",e.target.responseText);
+//                     }
+//                 };
+                var fd=new FormData();
+                fd.append("file",blob, filename);
+                // xhr.open("POST","sensei.bankbuddy.ai:8000/file/upload/",true);
+                // xhr.send(fd);
+                $.ajax({
+                    url: "sensei.bankbuddy.ai:8000/file/upload/",
+                    data: fd,
+                    processData: false,
+                    contentType: false,
+                    type: 'POST',
+                    success: function (data) {
+                        alert(data)
+                    }
+                });
+
+                recordingslist.appendChild(li)
+            });
+        }
+
+        window.onload = function init() {
+            try {
+                // webkit shim
+                window.AudioContext = window.AudioContext || window.webkitAudioContext;
+                navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia;
+                window.URL = window.URL || window.webkitURL;
+
+                audio_context = new AudioContext;
+                __log('Audio context set up.');
+                __log('navigator.getUserMedia ' + (navigator.getUserMedia ? 'available.' : 'not present!'));
+            } catch (e) {
+                alert('No web audio support in this browser!');
+            }
+
+            navigator.getUserMedia({audio: true}, startUserMedia, function(e) {
+                __log('No live audio input: ' + e);
+            });
+        };
+    </script>
+
+    <script src="Recorderjs/dist/recorder.js"></script>
+
+
+
+    <!-- Footer -->
+
+
+    <!-- END PAGE CONTENT -->
+</div>
+
+<script>
+    // Open and close sidebar
+    function openNav() {
+        document.getElementById("mySidebar").style.width = "60%";
+        document.getElementById("mySidebar").style.display = "block";
+    }
+
+    function closeNav() {
+        document.getElementById("mySidebar").style.display = "none";
+    }
+</script>
+
+</body>
+</html>
