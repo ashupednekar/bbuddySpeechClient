@@ -132,13 +132,13 @@
                 // xhr.open("POST","sensei.bankbuddy.ai:8000/file/upload/",true);
                 // xhr.send(fd);
                 $.ajax({
-                    url: "sensei.bankbuddy.ai:8000/file/upload/",
+                    url: " http://sensei.bankbuddy.ai:8000/file/upload/",
                     data: fd,
                     processData: false,
                     contentType: false,
                     type: 'POST',
                     success: function (data) {
-                        alert(data)
+                        console.log(JSON.stringify(data))
                     }
                 });
 
