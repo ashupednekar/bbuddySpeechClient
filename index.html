@@ -106,11 +106,9 @@
         function createDownloadLink() {
             recorder && recorder.exportWAV(function(blob) {
                 var url = URL.createObjectURL(blob);
-                // window.location.href = url
                 var li = document.createElement('li');
                 var au = document.createElement('audio');
                 var hf = document.createElement('a');
-                hf.style = "display: none"
 
                 au.controls = true;
                 au.src = url;
@@ -120,8 +118,7 @@
                 hf.innerHTML = hf.download;
                 li.appendChild(au);
                 li.appendChild(hf);
-                hf.click()
-                window.URL.revokeObjectURL(url);
+
                 var filename = new Date().toISOString(); //filename to send to server without extension
 //upload link
 //                 var xhr=new XMLHttpRequest();
